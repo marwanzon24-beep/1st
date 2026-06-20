@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Game Hub Pro</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  direction:rtl;
+  overflow-x:hidden;
+}
+
+/* خلفية متحركة */
+.bg{
+  background: linear-gradient(270deg,#fff176,#64b5f6,#ffd54f);
+  background-size:600% 600%;
+  animation:bgMove 10s ease infinite;
+}
+@keyframes bgMove{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+.container{max-width:420px;margin:auto;padding:15px}
+
+.card{
+  background:rgba(255,255,255,0.92);
+  border-radius:18px;
+  padding:15px;
+  margin-top:15px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.25);
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:12px;
+  border:1px solid #ddd;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:12px;
+  border:none;
+  font-weight:bold;
+  cursor:pointer;
+  background:linear-gradient(135deg,#222,#666);
+  color:#fff;
+  transition:0.3s;
+}
+button:hover{transform:scale(1.05)}
+
+.user{
+  background:#f5f5f5;
+  padding:10px;
+  border-radius:12px;
+  margin-top:10px;
+}
+
+.avatar{font-size:30px}
+
+.shopItem{
+  background:#fff;
+  padding:10px;
+  border-radius:12px;
+  margin-top:10px;
+  border:1px solid #eee;
+}
+</style>
+</head>
+
+<body class="bg">
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div class="card" id="login">
+    <h3>تسجيل الدخول 🎮</h3>
+    <input id="name" placeholder="الاسم">
+    <input id="pass" type="password" placeholder="الباسورد">
+    <button onclick="login()">دخول</button>
+  </div>
+
+  <!-- PANEL -->
+  <div class="card" id="panel" style="display:none">
+
+    <h3 id="welcome"></h3>
+
+    <button onclick="addXP()">+10 XP</button>
+
+    <div id="me"></div>
+
+    <!-- ADMIN -->
+    <div id="adminPanel" style="display:none">
+      <h4>👑 لوحة الأدمن</h4>
+      <div id="users"></div>
+    </div>
+
+    <!-- SHOP -->
+    <h4>🛒 المتجر</h4>
+
+    <div class="shopItem">
+      Skin 🔵 (50 XP)
+      <button onclick="buySkin('🔵')">شراء</button>
+    </div>
+
+    <div class="shopItem">
+      Skin 🟡 (50 XP)
+      <button onclick="buySkin('🟡')">شراء</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+let users = {
+  "Aya": {pass:"6678",xp:0,avatar:"🙂",skin:""},
+  "Habiba": {pass:"3342",xp:0,avatar:"😊",skin:""},
+  "Yassin": {pass:"2217",xp:0,avatar:"😎",skin:""},
+  "Marwan": {pass:"2234",xp:0,avatar:"🔥",skin:""},
+  "admin": {pass:"admin",xp:999,avatar:"👑",skin:""}
+};
+
+let current=null;
+
+/* حفظ */
+function save(){
+  localStorage.setItem("game",JSON.stringify(users));
+}
+
+/* تحميل */
+function load(){
+  let d=localStorage.getItem("game");
+  if(d) users=JSON.parse(d);
+}
+load();
+
+/* تسجيل الدخول */
+function login(){
+
+  let name=document.getElementById("name").value.trim();
+  let pass=document.getElementById("pass").value;
+
+  let found=null;
+
+  for(let k in users){
+    if(k.toLowerCase() === name.toLowerCase()){
+      found=k;
+      break;
+    }
+  }
+
+  if(found && users[found].pass===pass){
+
+    current=found;
+
+    document.getElementById("login").style.display="none";
+    document.getElementById("panel").style.display="block";
+
+    document.getElementById("welcome").innerText="أهلاً "+found;
+
+    if(found==="admin"){
+      document.getElementById("adminPanel").style.display="block";
+      render();
+    }
+
+    show();
+    save();
+
+  } else {
+    alert("❌ الاسم أو الباسورد غلط");
+  }
+}
+
+/* عرض بيانات اللاعب */
+function show(){
+  let u=users[current];
+
+  document.getElementById("me").innerHTML=`
+    <div class="user">
+      <div class="avatar">${u.avatar}</div>
+      XP: ${u.xp}<br>
+      Skin: ${u.skin || "none"}
+    </div>
+  `;
+}
+
+/* XP */
+function addXP(){
+  users[current].xp += 10;
+  show();
+  save();
+  if(current==="admin") render();
+}
+
+/* شراء */
+function buySkin(s){
+  if(users[current].xp >= 50){
+    users[current].xp -= 50;
+    users[current].skin = s;
+    show();
+    save();
+  } else {
+    alert("❌ XP مش كفاية");
+  }
+}
+
+/* الأدمن */
+function render(){
+  let html="";
+  for(let k in users){
+    html+=`
+      <div class="user">
+        ${k}<br>
+        XP: <input value="${users[k].xp}"
+        onchange="users['${k}'].xp=this.value;save()">
+      </div>
+    `;
+  }
+  document.getElementById("users").innerHTML=html;
+}
+
+</script>
+
+</body>
+</html>
